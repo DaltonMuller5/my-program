@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login Web Application</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap"
+    rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #39476c;
+      --card: #131c2b;
+      --border: #ffffff;
+      --accent: #18e3be;
+      --accent2: #ffffff;
+      --accent3: #ffffff;
+      --text: #031037;
+      --muted: #dbe0e99c;
+      --glow: 0 0 40px rgba(216, 225, 223, 0.15);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0, 245, 200, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 245, 200, 0.04) 1px, transparent 1px);
+      background-size: 50px 50px;
+      animation: gridMove 20s linear infinite;
+      z-index: 0;
+    }
+
+    @keyframes gridMove {
+      0% {
+        transform: translateY(0);
+      }
+
+      100% {
+        transform: translateY(50px);
+      }
+    }
+
+    /* Floating orbs */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.18;
+      animation: float 12s ease-in-out infinite;
+      z-index: 0;
+    }
+
+    .orb1 {
+      width: 400px;
+      height: 400px;
+      background: var(--accent);
+      top: -100px;
+      left: -100px;
+      animation-delay: 0s;
+    }
+
+    .orb2 {
+      width: 350px;
+      height: 350px;
+      background: var(--accent2);
+      bottom: -80px;
+      right: -80px;
+      animation-delay: -6s;
+    }
+
+    .orb3 {
+      width: 200px;
+      height: 200px;
+      background: var(--accent3);
+      top: 50%;
+      left: 60%;
+      animation-delay: -3s;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0) scale(1);
+      }
+
+      50% {
+        transform: translateY(-30px) scale(1.05);
+      }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      max-width: 580px;
+      width: 90%;
+      padding: 20px;
+    }
+
+    /* Badge */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 245, 200, 0.08);
+      border: 1px solid rgba(0, 245, 200, 0.25);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+      animation: fadeDown 0.6s ease both;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.4;
+        transform: scale(0.8);
+      }
+    }
+
+    /* Logo / Title */
+    .logo-wrap {
+      margin-bottom: 12px;
+      animation: fadeDown 0.6s 0.1s ease both;
+    }
+
+    .logo-icon {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 20px;
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(0, 245, 200, 0.08), rgba(123, 97, 255, 0.08));
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logo-icon::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent 40%, rgba(0, 245, 200, 0.15));
+    }
+
+    .logo-icon svg {
+      width: 36px;
+      height: 36px;
+    }
+
+    h1 {
+      font-size: clamp(2.4rem, 7vw, 4rem);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -2px;
+      margin-bottom: 8px;
+    }
+
+    h1 span.accent {
+      color: var(--accent);
+    }
+
+    h1 span.accent2 {
+      color: var(--accent2);
+    }
+
+    .subtitle {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 48px;
+      animation: fadeDown 0.6s 0.2s ease both;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 40px;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 24px;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .card.login-card::before {
+      background: radial-gradient(circle at top left, rgba(0, 245, 200, 0.08), transparent 60%);
+    }
+
+    .card.register-card::before {
+      background: radial-gradient(circle at top left, rgba(123, 97, 255, 0.08), transparent 60%);
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--glow);
+      border-color: rgba(0, 245, 200, 0.3);
+    }
+
+    .card.register-card:hover {
+      box-shadow: 0 0 40px rgba(123, 97, 255, 0.15);
+      border-color: rgba(123, 97, 255, 0.3);
+    }
+
+    .card-icon {
+      color: var(--accent3);
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .login-card .card-icon {
+      background: rgba(0, 245, 200, 0.1);
+    }
+
+    .register-card .card-icon {
+      background: rgba(123, 97, 255, 0.1);
+    }
+
+    .card-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .login-card .card-title {
+      color: var(--accent);
+    }
+
+    .register-card .card-title {
+      color: var(--accent2);
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .card-arrow {
+      margin-top: auto;
+      font-size: 20px;
+      transition: transform 0.3s;
+    }
+
+    .card:hover .card-arrow {
+      transform: translateX(6px);
+    }
+
+    .login-card .card-arrow {
+      color: var(--accent);
+    }
+
+    .register-card .card-arrow {
+      color: var(--accent2);
+    }
+
+    /* Stats strip */
+    .stats {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      animation: fadeUp 0.6s 0.4s ease both;
+    }
+
+    .stat {
+      flex: 1;
+      padding: 16px;
+      text-align: center;
+      border-right: 1px solid var(--border);
+    }
+
+    .stat:last-child {
+      border-right: none;
+    }
+
+    .stat-value {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Animations */
+    @keyframes fadeDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .cards {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        flex-direction: column;
+      }
+
+      .stat {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .stat:last-child {
+        border-bottom: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+
+  <div class="container">
+    <div class="badge">
+      <span class="badge-dot"></span>
+      System Online
+    </div>
+
+    <div class="logo-wrap">
+
+      <h1>Web<span class="accent">App</span></h1>
+    </div>
+
+    <p class="subtitle">Analytics · Authentication · Insights</p>
+
+    <div class="cards">
+      <a href="/login.html" class="card login-card">
+        <div class="card-icon">🔐</div>
+        <span class="card-label">Welcome back</span>
+        <div class="card-title">Login</div>
+        <p class="card-desc">Access your account with data-powered login analytics.</p>
+        <div class="card-arrow">→</div>
+      </a>
+      <a href="/register.html" class="card register-card">
+        <div class="card-icon">✦</div>
+        <span class="card-label">New here?</span>
+        <div class="card-title">Register</div>
+        <p class="card-desc">Create your account and join the platform today.</p>
+        <div class="card-arrow">→</div>
+      </a>
+    </div>
+
+    <script>
+      fetch('/api/analytics')
+        .then(r => r.json())
+        .then(d => {
+          document.getElementById('s-users').textContent = d.user_count;
+          document.getElementById('s-attempts').textContent = d.total_attempts;
+          document.getElementById('s-rate').textContent = d.success_rate + '%';
+        })
+        .catch(() => {
+          ['s-users', 's-attempts', 's-rate'].forEach(id => {
+            document.getElementById(id).textContent = '0';
+          });
+          document.getElementById('s-rate').textContent = '0%';
+        });
+    </script>
+</body>
+
+</html>
