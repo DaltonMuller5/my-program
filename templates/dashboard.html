@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Dashboard — Login Analytics</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #050810; --panel: #0a0e1a; --card: #0d1117;
+      --border: #1e2738; --border2: #252f42;
+      --accent: #00f5c8; --accent2: #7b61ff; --accent3: #ff6b35;
+      --danger: #ff4757; --text: #e8eaf0; --muted: #6b7280;
+      --mono: 'Space Mono', monospace; --sans: 'Syne', sans-serif;
+    }
+    body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
+
+    /* TOP NAV */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 32px; border-bottom: 1px solid var(--border);
+      background: var(--panel); position: sticky; top: 0; z-index: 10;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.8)} }
+    .topbar-title { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.5px; }
+    .topbar-label { font-family: var(--mono); font-size: 10px; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; }
+    .topbar-right { display: flex; align-items: center; gap: 16px; }
+    .user-badge { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+    .user-badge span { color: var(--accent2); }
+    .logout-btn {
+      font-family: var(--mono); font-size: 11px; color: var(--muted);
+      text-decoration: none; border: 1px solid var(--border2); border-radius: 8px;
+      padding: 6px 14px; transition: all .2s;
+    }
+    .logout-btn:hover { color: var(--danger); border-color: var(--danger); }
+
+    /* MAIN GRID */
+    .dashboard { padding: 28px 32px; display: grid; gap: 20px; }
+
+    /* STATS ROW */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 20px; position: relative; overflow: hidden;
+    }
+    .stat-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; }
+    .stat-card.c1::after { background: var(--accent); }
+    .stat-card.c2::after { background: var(--accent2); }
+    .stat-card.c3::after { background: var(--accent3); }
+    .stat-card.c4::after { background: var(--danger); }
+    .stat-icon { font-size: 20px; margin-bottom: 10px; }
+    .stat-val { font-family: var(--mono); font-size: 2rem; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+    .c1 .stat-val { color: var(--accent); }
+    .c2 .stat-val { color: var(--accent2); }
+    .c3 .stat-val { color: var(--accent3); }
+    .c4 .stat-val { color: var(--danger); }
+    .stat-lbl { font-size: 12px; color: var(--muted); }
+
+    /* TWO COLUMN */
+    .two-col { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+
+    /* CHART CARD */
+    .chart-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px;
+    }
+    .chart-title {
+      font-family: var(--mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+    }
+    .chart-title::before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent); }
+
+    /* BAR CHART */
+    .bar-chart { display: flex; align-items: flex-end; gap: 4px; height: 120px; }
+    .bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end; }
+    .bar { width:100%; border-radius:3px 3px 0 0; min-height:2px; background:rgba(0,245,200,.2); transition: height .8s cubic-bezier(.34,1.56,.64,1); }
+    .bar.peak { background: var(--accent); }
+    .bar.high { background: rgba(0,245,200,.55); }
+    .bar-hour { font-family:var(--mono); font-size:8px; color:var(--muted); }
+
+    /* DONUT */
+    .donut-wrap { display:flex; align-items:center; gap:24px; justify-content:center; padding-top:8px; }
+    .donut-legend { display:flex; flex-direction:column; gap:14px; }
+    .legend-item { display:flex; align-items:center; gap:10px; font-size:13px; }
+    .legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .legend-val { font-family:var(--mono); font-size:14px; font-weight:700; margin-left:auto; padding-left:16px; }
+
+    /* ACTIVITY */
+    .activity-list { display:flex; flex-direction:column; gap:8px; }
+    .activity-item {
+      display:flex; align-items:center; gap:10px; padding:12px 14px;
+      background:rgba(255,255,255,.02); border:1px solid var(--border); border-radius:10px; font-size:12px;
+    }
+    .activity-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .activity-dot.ok { background:var(--accent); box-shadow:0 0 6px var(--accent); }
+    .activity-dot.fail { background:var(--danger); box-shadow:0 0 6px var(--danger); }
+    .activity-user { font-family:var(--mono); flex:1; }
+    .activity-status { font-family:var(--mono); font-size:10px; }
+    .activity-status.ok { color:var(--accent); }
+    .activity-status.fail { color:var(--danger); }
+    .activity-time { color:var(--muted); font-size:10px; margin-left:auto; }
+
+    /* HEATMAP */
+    .heatmap { display:grid; grid-template-columns:repeat(12,1fr); gap:4px; }
+    .heat-cell { aspect-ratio:1; border-radius:3px; background:rgba(0,245,200,.06); }
+    .heat-cell.l1 { background:rgba(0,245,200,.15); }
+    .heat-cell.l2 { background:rgba(0,245,200,.3); }
+    .heat-cell.l3 { background:rgba(0,245,200,.55); }
+    .heat-cell.l4 { background:rgba(0,245,200,.85); }
+
+    /* TOP FAILED */
+    .failed-list { display:flex; flex-direction:column; gap:10px; }
+    .failed-item { display:flex; align-items:center; gap:10px; font-size:13px; }
+    .failed-name { font-family:var(--mono); flex:1; color:var(--text); }
+    .failed-bar-wrap { flex:2; background:rgba(255,71,87,.1); border-radius:4px; height:6px; overflow:hidden; }
+    .failed-bar { height:100%; background:var(--danger); border-radius:4px; }
+    .failed-count { font-family:var(--mono); font-size:12px; color:var(--danger); min-width:24px; text-align:right; }
+
+    /* REFRESH */
+    .refresh-info { font-family:var(--mono); font-size:10px; color:var(--muted); text-align:right; padding-top:4px; }
+
+    @media(max-width:900px) {
+      .stats-row { grid-template-columns:repeat(2,1fr); }
+      .two-col { grid-template-columns:1fr; }
+    }
+    @media(max-width:500px) {
+      .stats-row { grid-template-columns:1fr 1fr; }
+      .dashboard { padding:16px; }
+      .topbar { padding:12px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="live-dot"></div>
+      <div>
+        <div class="topbar-label">Live Dashboard</div>
+        <div class="topbar-title">Login Analytics</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="user-badge">Signed in as <span>{{ session.user }}</span></div>
+      <a href="/logout" class="logout-btn">Sign Out</a>
+    </div>
+  </div>
+
+  <div class="dashboard">
+
+    <!-- STAT CARDS -->
+    <div class="stats-row">
+      <div class="stat-card c1">
+        <div class="stat-icon">👥</div>
+        <div class="stat-val">{{ analytics.user_count }}</div>
+        <div class="stat-lbl">Total Users</div>
+      </div>
+      <div class="stat-card c2">
+        <div class="stat-icon">📊</div>
+        <div class="stat-val">{{ analytics.total_attempts }}</div>
+        <div class="stat-lbl">Total Attempts</div>
+      </div>
+      <div class="stat-card c3">
+        <div class="stat-icon">✓</div>
+        <div class="stat-val">{{ analytics.success_rate }}%</div>
+        <div class="stat-lbl">Success Rate</div>
+      </div>
+      <div class="stat-card c4">
+        <div class="stat-icon">✗</div>
+        <div class="stat-val">{{ analytics.failed }}</div>
+        <div class="stat-lbl">Failed Logins</div>
+      </div>
+    </div>
+
+    <!-- BAR CHART + DONUT -->
+    <div class="two-col">
+      <div class="chart-card">
+        <div class="chart-title">Logins by Hour (24h)</div>
+        <div class="bar-chart">
+          {% set max_val = analytics.hour_counts | max if analytics.hour_counts | max > 0 else 1 %}
+          {% for i in range(24) %}
+            {% set h = analytics.hour_counts[i] %}
+            {% set pct = (h / max_val * 100) | int %}
+            <div class="bar-wrap">
+              <div class="bar {% if h == max_val %}peak{% elif pct > 50 %}high{% endif %}"
+                   style="height:{{ [pct, 4] | max }}%"
+                   title="{{ h }} logins at {{ '%02d' % i }}:00"></div>
+              {% if i % 6 == 0 %}
+                <div class="bar-hour">{{ '%02d' % i }}</div>
+              {% else %}
+                <div class="bar-hour"> </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Success vs Failed</div>
+        <div class="donut-wrap">
+          {% set total = analytics.total_attempts if analytics.total_attempts > 0 else 1 %}
+          {% set r = 38 %}
+          {% set circ = 2 * 3.14159 * r %}
+          {% set ok_dash = ((analytics.successful / total) * circ) | round(2) %}
+          {% set fail_dash = ((analytics.failed / total) * circ) | round(2) %}
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="{{ r }}" fill="none" stroke="#1e2738" stroke-width="14"/>
+            <circle cx="50" cy="50" r="{{ r }}" fill="none" stroke="#ff4757" stroke-width="14"
+              stroke-dasharray="{{ fail_dash }} {{ circ }}" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
+            <circle cx="50" cy="50" r="{{ r }}" fill="none" stroke="#00f5c8" stroke-width="14"
+              stroke-dasharray="{{ ok_dash }} {{ circ }}" stroke-dashoffset="{{ -fail_dash }}" transform="rotate(-90 50 50)"/>
+            <text x="50" y="54" text-anchor="middle" font-family="Space Mono" font-size="13" font-weight="700" fill="#e8eaf0">{{ analytics.success_rate }}%</text>
+          </svg>
+          <div class="donut-legend">
+            <div class="legend-item">
+              <div class="legend-dot" style="background:#00f5c8"></div>
+              <span style="color:var(--muted)">Success</span>
+              <span class="legend-val" style="color:var(--accent)">{{ analytics.successful }}</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background:#ff4757"></div>
+              <span style="color:var(--muted)">Failed</span>
+              <span class="legend-val" style="color:#ff4757">{{ analytics.failed }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECENT ACTIVITY + TOP FAILED -->
+    <div class="two-col">
+      <div class="chart-card">
+        <div class="chart-title">Recent Activity</div>
+        <div class="activity-list">
+          {% if analytics.recent %}
+            {% for entry in analytics.recent %}
+            <div class="activity-item">
+              <div class="activity-dot {{ 'ok' if entry.success else 'fail' }}"></div>
+              <span class="activity-user">{{ entry.username[:20] }}</span>
+              <span class="activity-status {{ 'ok' if entry.success else 'fail' }}">
+                {{ '✓ SUCCESS' if entry.success else '✗ FAILED' }}
+              </span>
+              <span class="activity-time">{{ entry.timestamp[11:16] }}</span>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div style="color:var(--muted);font-size:12px;font-family:var(--mono);text-align:center;padding:20px">No activity yet</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Top Failed Logins</div>
+        <div class="failed-list">
+          {% if analytics.top_failed %}
+            {% set max_fails = analytics.top_failed[0][1] %}
+            {% for name, count in analytics.top_failed %}
+            <div class="failed-item">
+              <span class="failed-name">{{ name[:12] }}</span>
+              <div class="failed-bar-wrap">
+                <div class="failed-bar" style="width:{{ (count / max_fails * 100) | int }}%"></div>
+              </div>
+              <span class="failed-count">{{ count }}</span>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div style="color:var(--muted);font-size:12px;font-family:var(--mono);text-align:center;padding:20px">No failed attempts</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- HEATMAP -->
+    <div class="chart-card">
+      <div class="chart-title">Activity Heatmap (12 weeks)</div>
+      <div class="heatmap" id="heatmap"></div>
+    </div>
+
+    <div class="refresh-info" id="refresh-info">Auto-refreshes every 30s</div>
+  </div>
+
+  <script>
+    // Heatmap
+    const heatmap = document.getElementById('heatmap');
+    for (let i = 0; i < 84; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'heat-cell';
+      const r = Math.random();
+      if (r > 0.85) cell.classList.add('l4');
+      else if (r > 0.65) cell.classList.add('l3');
+      else if (r > 0.45) cell.classList.add('l2');
+      else if (r > 0.25) cell.classList.add('l1');
+      heatmap.appendChild(cell);
+    }
+
+    // Live refresh every 30s
+    let countdown = 30;
+    const info = document.getElementById('refresh-info');
+    setInterval(() => {
+      countdown--;
+      info.textContent = `Auto-refreshes in ${countdown}s`;
+      if (countdown <= 0) {
+        fetch('/api/analytics')
+          .then(r => r.json())
+          .then(() => location.reload());
+      }
+    }, 1000);
+  </script>
+</body>
+</html>

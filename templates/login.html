@@ -1,683 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DataPortal — Login</title>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap"
-    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      transition: background 0.3s, color 0.3s, border-color 0.3s;
-    }
-
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg: #050810;
-      --panel: #0a0e1a;
-      --card: #0d1117;
-      --border: #1e2738;
-      --border2: #252f42;
-      --accent: #00f5c8;
-      --accent2: #7b61ff;
-      --accent3: #ff6b35;
-      --danger: #ff4757;
-      --success: #00f5c8;
-      --text: #e8eaf0;
-      --muted: #6b7280;
-      --mono: 'Space Mono', monospace;
-      --sans: 'Syne', sans-serif;
+      --bg: #050810; --card: #0d1117; --border: #1e2738; --border2: #252f42;
+      --accent: #00f5c8; --accent2: #7b61ff; --danger: #ff4757;
+      --text: #e8eaf0; --muted: #6b7280;
+      --mono: 'Space Mono', monospace; --sans: 'Syne', sans-serif;
     }
-
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
-      min-height: 100vh;
-      display: grid;
-      grid-template-columns: 1fr 420px;
-    }
-
-    .analytics-panel {
-      background: var(--panel);
-      border-right: 1px solid var(--border);
-      padding: 32px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      overflow-y: auto;
-      position: relative;
-    }
-
-    .analytics-panel::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image: linear-gradient(rgba(0, 245, 200, 0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 245, 200, 0.025) 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events: none;
-    }
-
-    .panel-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 4px;
-    }
-
-    .panel-label {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: var(--accent);
-    }
-
-    .panel-title {
-      font-size: 1.4rem;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-    }
-
-    /* Stat cards row */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-    }
-
-    .stat-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 16px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .stat-card::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-    }
-
-    .stat-card.c1::after {
-      background: var(--accent);
-    }
-
-    .stat-card.c2::after {
-      background: var(--accent2);
-    }
-
-    .stat-card.c3::after {
-      background: var(--accent3);
-    }
-
-    .stat-icon {
-      font-size: 18px;
-      margin-bottom: 8px;
-    }
-
-    .stat-val {
-      font-family: var(--mono);
-      font-size: 1.6rem;
-      font-weight: 700;
-      line-height: 1;
-      margin-bottom: 4px;
-    }
-
-    .c1 .stat-val {
-      color: var(--accent);
-    }
-
-    .c2 .stat-val {
-      color: var(--accent2);
-    }
-
-    .c3 .stat-val {
-      color: var(--accent3);
-    }
-
-    .stat-lbl {
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .chart-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px;
-    }
-
-    .chart-title {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .chart-title::before {
-      content: '';
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
-    }
-
-    /* Bar chart */
-    .bar-chart {
-      display: flex;
-      align-items: flex-end;
-      gap: 3px;
-      height: 80px;
-    }
-
-    .bar-wrap {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      height: 100%;
-      justify-content: flex-end;
-    }
-
-    .bar {
-      width: 100%;
-      border-radius: 3px 3px 0 0;
-      min-height: 2px;
-      transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-      position: relative;
-    }
-
-    .bar-chart .bar {
-      background: rgba(0, 245, 200, 0.3);
-    }
-
-    .bar-chart .bar.active {
-      background: var(--accent);
-    }
-
-    .bar-chart .bar.peak {
-      background: rgba(0, 245, 200, 0.6);
-    }
-
-    .bar-hour {
-      font-family: var(--mono);
-      font-size: 8px;
-      color: var(--muted);
-    }
-
-    /* Donut chart */
-    .donut-wrap {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .donut-svg {
-      flex-shrink: 0;
-    }
-
-    .donut-legend {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-    }
-
-    .legend-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .legend-val {
-      font-family: var(--mono);
-      font-size: 13px;
-      font-weight: 700;
-      margin-left: auto;
-    }
-
-    /* Recent activity */
-    .activity-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .activity-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      font-size: 12px;
-    }
-
-    .activity-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .activity-dot.ok {
-      background: var(--accent);
-      box-shadow: 0 0 6px var(--accent);
-    }
-
-    .activity-dot.fail {
-      background: var(--danger);
-      box-shadow: 0 0 6px var(--danger);
-    }
-
-    .activity-user {
-      font-family: var(--mono);
-      color: var(--text);
-      flex: 1;
-    }
-
-    .activity-status {
-      font-family: var(--mono);
-      font-size: 10px;
-    }
-
-    .activity-status.ok {
-      color: var(--accent);
-    }
-
-    .activity-status.fail {
-      color: var(--danger);
-    }
-
-    .activity-time {
-      color: var(--muted);
-      font-size: 10px;
-      margin-left: auto;
-    }
-
-    /* Mini heatmap */
-    .heatmap {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 3px;
-    }
-
-    .heat-cell {
-      aspect-ratio: 1;
-      border-radius: 3px;
-      background: rgba(0, 245, 200, 0.06);
-      transition: background 0.3s;
-    }
-
-    .heat-cell.l1 {
-      background: rgba(0, 245, 200, 0.15);
-    }
-
-    .heat-cell.l2 {
-      background: rgba(0, 245, 200, 0.3);
-    }
-
-    .heat-cell.l3 {
-      background: rgba(0, 245, 200, 0.55);
-    }
-
-    .heat-cell.l4 {
-      background: rgba(0, 245, 200, 0.85);
-    }
-
-    /* RIGHT — Login form */
-    .login-panel {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 48px 40px;
-      position: relative;
-      background: var(--bg);
-    }
-
-    .back-link {
-      position: absolute;
-      top: 28px;
-      left: 28px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--muted);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    .back-link:hover {
-      color: var(--accent);
-    }
-
-    .form-eyebrow {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 12px;
-      animation: fadeUp 0.5s ease both;
-    }
-
-    .form-title {
-      font-size: 2.2rem;
-      font-weight: 800;
-      letter-spacing: -1px;
-      margin-bottom: 6px;
-      animation: fadeUp 0.5s 0.05s ease both;
-    }
-
-    .form-sub {
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 36px;
-      animation: fadeUp 0.5s 0.1s ease both;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-      animation: fadeUp 0.5s 0.15s ease both;
-    }
-
-    label {
-      display: block;
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-
-    input {
-      width: 100%;
-      background: var(--card);
-      border: 1px solid var(--border2);
-      border-radius: 12px;
-      padding: 14px 18px;
-      color: var(--text);
-      font-family: var(--mono);
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(0, 245, 200, 0.1);
-    }
-
-    input::placeholder {
-      color: rgba(107, 114, 128, 0.6);
-    }
-
-    .submit-btn {
-      width: 100%;
-      padding: 16px;
-      background: var(--accent);
-      color: var(--bg);
-      border: none;
-      border-radius: 12px;
-      font-family: var(--sans);
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-      letter-spacing: 0.5px;
-      margin-top: 8px;
-      animation: fadeUp 0.5s 0.25s ease both;
-    }
-
-    .submit-btn:hover {
-      background: #00ddb4;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(0, 245, 200, 0.25);
-    }
-
-    .submit-btn:active {
-      transform: translateY(0);
-    }
+      background: var(--bg); color: var(--text); font-family: var(--sans);
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: linear-gradient(rgba(0,245,200,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,200,.03) 1px, transparent 1px);
+      background-size: 40px 40px; pointer-events: none;
+    }
+    .box {
+      background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+      padding: 48px 44px; width: 100%; max-width: 420px; position: relative; z-index: 1;
+    }
+    .eyebrow {
+      font-family: var(--mono); font-size: 10px; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+    }
+    .title { font-size: 2rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 6px; }
+    .sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
 
     .message {
-      padding: 14px 18px;
-      border-radius: 12px;
-      font-family: var(--mono);
-      font-size: 12px;
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      animation: fadeUp 0.4s ease both;
+      padding: 12px 16px; border-radius: 10px; font-family: var(--mono);
+      font-size: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
     }
+    .message.success { background: rgba(0,245,200,.08); border: 1px solid rgba(0,245,200,.3); color: var(--accent); }
+    .message.error { background: rgba(255,71,87,.08); border: 1px solid rgba(255,71,87,.3); color: var(--danger); }
 
-    .message.success {
-      background: rgba(0, 245, 200, 0.08);
-      border: 1px solid rgba(0, 245, 200, 0.3);
-      color: var(--accent);
+    /* Google button */
+    .google-btn {
+      width: 100%; padding: 13px; background: #fff; color: #1f1f1f;
+      border: none; border-radius: 10px; font-family: var(--sans); font-size: 14px;
+      font-weight: 600; cursor: pointer; display: flex; align-items: center;
+      justify-content: center; gap: 10px; transition: all .2s; margin-bottom: 20px;
     }
-
-    .message.error {
-      background: rgba(255, 71, 87, 0.08);
-      border: 1px solid rgba(255, 71, 87, 0.3);
-      color: var(--danger);
-    }
+    .google-btn:hover { background: #f0f0f0; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,.3); }
 
     .divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 24px 0;
-      animation: fadeUp 0.5s 0.3s ease both;
+      display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
     }
+    .divider-line { flex: 1; height: 1px; background: var(--border); }
+    .divider-text { font-family: var(--mono); font-size: 10px; color: var(--muted); }
 
-    .divider-line {
-      flex: 1;
-      height: 1px;
-      background: var(--border);
+    .form-group { margin-bottom: 18px; }
+    label { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    input {
+      width: 100%; background: var(--bg); border: 1px solid var(--border2);
+      border-radius: 10px; padding: 13px 16px; color: var(--text);
+      font-family: var(--mono); font-size: 14px; outline: none; transition: border-color .2s, box-shadow .2s;
     }
+    input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,245,200,.1); }
+    input::placeholder { color: rgba(107,114,128,.5); }
 
-    .divider-text {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--muted);
+    .submit-btn {
+      width: 100%; padding: 14px; background: var(--accent); color: var(--bg);
+      border: none; border-radius: 10px; font-family: var(--sans); font-size: 15px;
+      font-weight: 700; cursor: pointer; transition: all .2s; margin-top: 4px;
     }
+    .submit-btn:hover { background: #00ddb4; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,245,200,.25); }
 
-    .register-link {
-      text-align: center;
-      font-size: 13px;
-      color: var(--muted);
-      animation: fadeUp 0.5s 0.35s ease both;
-    }
-
-    .register-link a {
-      color: var(--accent2);
-      text-decoration: none;
-      font-weight: 600;
-    }
-
-    .register-link a:hover {
-      text-decoration: underline;
-    }
-
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(16px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @media (max-width: 900px) {
-      body {
-        grid-template-columns: 1fr;
-      }
-
-      .analytics-panel {
-        display: none;
-      }
-
-      .login-panel {
-        padding: 80px 32px 40px;
-      }
-    }
+    .footer { text-align: center; font-size: 13px; color: var(--muted); margin-top: 24px; }
+    .footer a { color: var(--accent2); text-decoration: none; font-weight: 600; }
+    .footer a:hover { text-decoration: underline; }
+    .back { display: inline-block; font-family: var(--mono); font-size: 11px; color: var(--muted); text-decoration: none; margin-bottom: 28px; transition: color .2s; }
+    .back:hover { color: var(--accent); }
   </style>
 </head>
-
 <body>
-  <div class="analytics-panel">
-    <div>
-      <div class="panel-label">Live Dashboard</div>
-      <div class="panel-title">Login Analytics</div>
-    </div>
-
-    <div class="stats-row">
-      <div class="stat-card c1">
-        <div class="stat-icon">👥</div>
-        <div class="stat-val" id="total-users">{{ analytics.user_count }}</div>
-        <div class="stat-lbl">Total Users</div>
-      </div>
-      <div class="stat-card c2">
-        <div class="stat-icon">📊</div>
-        <div class="stat-val" id="total-attempts">{{ analytics.total_attempts }}</div>
-        <div class="stat-lbl">Attempts</div>
-      </div>
-      <div class="stat-card c3">
-        <div class="stat-icon">✓</div>
-        <div class="stat-val" id="success-rate">{{ analytics.success_rate }}%</div>
-        <div class="stat-lbl">Success Rate</div>
-      </div>
-    </div>
-
-    <div class="chart-card">
-      <div class="chart-title">Logins by Hour (24h)</div>
-      <div class="bar-chart" id="bar-chart">
-        {% set hour_counts = analytics.hour_counts %}
-        {% set max_val = hour_counts | max if hour_counts | max > 0 else 1 %}
-        {% for i in range(24) %}
-        {% set h = hour_counts[i] %}
-        {% set pct = (h / max_val * 100) | int %}
-        <div class="bar-wrap">
-          <div class="bar {% if h == max_val %}peak{% elif i == 9 or i == 15 or i == 20 %}active{% endif %}"
-            style="height: { pct | max(4) }" title="{{ h }} logins at {{ i }}h"></div>
-          {% if i % 6 == 0 %}
-          <div class="bar-hour">{{ '%02d' % i }}</div>
-          {% else %}
-          <div class="bar-hour"> </div>
-          {% endif %}
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-
-    <!-- Donut chart -->
-    <div class="chart-card">
-      <div class="chart-title">Success vs Failed</div>
-      <div class="donut-wrap">
-        <svg class="donut-svg" width="90" height="90" viewBox="0 0 90 90">
-          {% set total = analytics.total_attempts if analytics.total_attempts > 0 else 1 %}
-          {% set ok_pct = (analytics.successful / total) %}
-          {% set fail_pct = (analytics.failed / total) %}
-          {% set r = 34 %}
-          {% set circ = 2 * 3.14159 * r %}
-          {% set ok_dash = (ok_pct * circ) | round(2) %}
-          {% set fail_dash = (fail_pct * circ) | round(2) %}
-          <circle cx="45" cy="45" r="{{ r }}" fill="none" stroke="#1e2738" stroke-width="12" />
-          <circle cx="45" cy="45" r="{{ r }}" fill="none" stroke="#ff4757" stroke-width="12"
-            stroke-dasharray="{{ fail_dash }} {{ circ }}" stroke-dashoffset="0" transform="rotate(-90 45 45)" />
-          <circle cx="45" cy="45" r="{{ r }}" fill="none" stroke="#00f5c8" stroke-width="12"
-            stroke-dasharray="{{ ok_dash }} {{ circ }}" stroke-dashoffset="{{ -fail_dash }}"
-            transform="rotate(-90 45 45)" />
-          <text x="45" y="49" text-anchor="middle" font-family="Space Mono" font-size="13" font-weight="700"
-            fill="#e8eaf0">{{ analytics.success_rate }}%</text>
-        </svg>
-        <div class="donut-legend">
-          <div class="legend-item">
-            <div class="legend-dot" style="background:#00f5c8"></div>
-            <span style="color:var(--muted);font-size:12px">Success</span>
-            <span class="legend-val" style="color:var(--accent)">{{ analytics.successful }}</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-dot" style="background:#ff4757"></div>
-            <span style="color:var(--muted);font-size:12px">Failed</span>
-            <span class="legend-val" style="color:#ff4757">{{ analytics.failed }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Recent activity -->
-    <div class="chart-card">
-      <div class="chart-title">Recent Activity</div>
-      <div class="activity-list">
-        {% if analytics.recent %}
-        {% for entry in analytics.recent %}
-        <div class="activity-item">
-          <div class="activity-dot {{ 'ok' if entry.success else 'fail' }}"></div>
-          <span class="activity-user">{{ entry.username[:14] }}</span>
-          <span class="activity-status {{ 'ok' if entry.success else 'fail' }}">
-            {{ '✓ OK' if entry.success else '✗ FAIL' }}
-          </span>
-          <span class="activity-time">{{ entry.timestamp[11:16] }}</span>
-        </div>
-        {% endfor %}
-        {% else %}
-        <div style="color:var(--muted);font-size:12px;font-family:var(--mono);text-align:center;padding:12px">
-          No activity yet
-        </div>
-        {% endif %}
-      </div>
-    </div>
-
-    <!-- Heatmap -->
-    <div class="chart-card">
-      <div class="chart-title">Activity Heatmap (12 weeks)</div>
-      <div class="heatmap" id="heatmap"></div>
-    </div>
-  </div>
-
-  <!-- RIGHT: LOGIN FORM -->
-  <div class="login-panel">
-    <a href="/" class="back-link">← Back</a>
-
-    <div class="form-eyebrow">Authentication</div>
-    <div class="form-title">Welcome back.</div>
-    <p class="form-sub">Sign in to access the data portal.</p>
+  <div class="box">
+    <a href="/" class="back">← Back</a>
+    <div class="eyebrow">Authentication</div>
+    <div class="title">Welcome back.</div>
+    <p class="sub">Sign in to access the data portal.</p>
 
     {% if message %}
     <div class="message {{ msg_type }}">
@@ -686,73 +95,71 @@
     </div>
     {% endif %}
 
-    <div id="message"
-      style=" align-items: center; align-content: center; display: flex; flex-direction: column; gap: 5px; ">
-      <button style="width: 200px; padding: 10px 2px;" class="google-btn" onclick="signInWithGoogle()">
-        <svg width="18" height="18" viewBox="0 0 48 48">
-          <path fill="#EA4335"
-            d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-          <path fill="#4285F4"
-            d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-          <path fill="#FBBC05"
-            d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-          <path fill="#34A853"
-            d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
-        </svg>
-        Continue with Google
-      </button>
+    <!-- Google Sign-In -->
+    <button class="google-btn" onclick="googleSignIn()">
+      <svg width="18" height="18" viewBox="0 0 48 48">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+      </svg>
+      Continue with Google
+    </button>
 
-      <div class="divider">or sign in with email</div>
-
+    <div class="divider">
+      <div class="divider-line"></div>
+      <span class="divider-text">or sign in with email</span>
+      <div class="divider-line"></div>
     </div>
-
 
     <form method="POST" action="/login">
       <div class="form-group">
         <label for="username">Username</label>
         <input type="text" id="username" name="username" placeholder="your_username" autocomplete="username" required />
       </div>
-      <div class="form-group" style="animation-delay:0.2s">
+      <div class="form-group">
         <label for="password">Password</label>
-        <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password"
-          required />
+        <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password" required />
       </div>
       <button type="submit" class="submit-btn">Sign In →</button>
     </form>
 
-    <div class="divider">
-      <div class="divider-line"></div>
-      <span class="divider-text">or</span>
-      <div class="divider-line"></div>
-    </div>
-
-    <div class="register-link">
+    <div class="footer">
       Don't have an account? <a href="/register">Create one →</a>
     </div>
   </div>
 
+  <!-- Hidden Google One Tap div -->
+  <div id="g_id_onload"
+       data-client_id="{{ google_client_id }}"
+       data-callback="handleGoogleCredential"
+       data-auto_prompt="false">
+  </div>
+
   <script>
-    // Generate random heatmap
-    const heatmap = document.getElementById('heatmap');
-    if (heatmap) {
-      for (let i = 0; i < 84; i++) {
-        const cell = document.createElement('div');
-        cell.className = 'heat-cell';
-        const r = Math.random();
-        if (r > 0.85) cell.classList.add('l4');
-        else if (r > 0.65) cell.classList.add('l3');
-        else if (r > 0.45) cell.classList.add('l2');
-        else if (r > 0.25) cell.classList.add('l1');
-        heatmap.appendChild(cell);
-      }
+    function googleSignIn() {
+      google.accounts.id.initialize({
+        client_id: "{{ google_client_id }}",
+        callback: handleGoogleCredential
+      });
+      google.accounts.id.prompt();
     }
 
-    document.querySelectorAll('.bar').forEach((bar, i) => {
-      const h = bar.style.height;
-      bar.style.height = '0%';
-      setTimeout(() => { bar.style.height = h; }, 100 + i * 20);
-    });
+    function handleGoogleCredential(response) {
+      fetch('/google-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: response.credential })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.ok) {
+          window.location.href = '/dashboard';
+        } else {
+          alert('Google login failed: ' + (data.error || 'Unknown error'));
+        }
+      });
+    }
   </script>
 </body>
-
 </html>

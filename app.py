@@ -9,8 +9,11 @@ from google.auth.transport import requests as google_requests
 from functools import wraps
 from dotenv import load_dotenv
 
+load_dotenv()
+
 app = Flask(__name__)
-app.secret_key = "datascience_secret_key_2024"
+app.secret_key = os.environ.get("SECRET_KEY", "datascience_secret_key_2024")
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 
 USERS_FILE = "users.json"
 LOGINS_FILE = "login_log.json"
@@ -130,9 +133,10 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if "user" in session:
+        return redirect(url_for("dashboard"))
     message = ""
     msg_type = ""
-    analytics = get_analytics()
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "").strip()
@@ -141,15 +145,40 @@ def login():
         if username in users and users[username]["password"] == hash_password(password):
             log_login_attempt(username, True, ip)
             session["user"] = username
-            message = f"Welcome back, {username}! Login successful."
-            msg_type = "success"
-            analytics = get_analytics()
+            return redirect(url_for("dashboard"))
         else:
             log_login_attempt(username, False, ip)
             message = "Invalid username or password."
             msg_type = "error"
-            analytics = get_analytics()
-    return render_template("login.html", message=message, msg_type=msg_type, analytics=analytics)
+    return render_template("login.html", message=message, msg_type=msg_type, google_client_id=GOOGLE_CLIENT_ID)
+
+@app.route("/google-login", methods=["POST"])
+def google_login():
+    token = request.json.get("credential", "")
+    try:
+        info = id_token.verify_oauth2_token(token, google_requests.Request(), GOOGLE_CLIENT_ID)
+        email = info["email"]
+        name = info.get("name", email.split("@")[0])
+        users = load_users()
+        if email not in users:
+            users[email] = {"password": "", "created_at": datetime.datetime.now().isoformat(), "google": True}
+            save_users(users)
+        log_login_attempt(email, True, request.remote_addr)
+        session["user"] = name
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 401
+
+@app.route("/dashboard")
+def dashboard():
+    if "user" not in session:
+        return redirect(url_for("login"))
+    return render_template("dashboard.html", analytics=get_analytics())
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 
 @app.route("/api/analytics")
 def api_analytics():
