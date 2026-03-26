@@ -4,8 +4,8 @@ import random
 import hashlib
 import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
-from google.oauth2 import id_token
-from google.auth.transport import requests as google_requests
+# from google.oauth2 import id_token
+# from google.auth.transport import requests as google_requests
 from functools import wraps
 from dotenv import load_dotenv
 
@@ -13,7 +13,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "datascience_secret_key_2024")
-GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+# GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 
 USERS_FILE = "users.json"
 LOGINS_FILE = "login_log.json"
@@ -150,24 +150,24 @@ def login():
             log_login_attempt(username, False, ip)
             message = "Invalid username or password."
             msg_type = "error"
-    return render_template("login.html", message=message, msg_type=msg_type, google_client_id=GOOGLE_CLIENT_ID)
+    return render_template("login.html", message=message, msg_type=msg_type, google_client_id="")
 
-@app.route("/google-login", methods=["POST"])
-def google_login():
-    token = request.json.get("credential", "")
-    try:
-        info = id_token.verify_oauth2_token(token, google_requests.Request(), GOOGLE_CLIENT_ID)
-        email = info["email"]
-        name = info.get("name", email.split("@")[0])
-        users = load_users()
-        if email not in users:
-            users[email] = {"password": "", "created_at": datetime.datetime.now().isoformat(), "google": True}
-            save_users(users)
-        log_login_attempt(email, True, request.remote_addr)
-        session["user"] = name
-        return jsonify({"ok": True})
-    except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 401
+# @app.route("/google-login", methods=["POST"])
+# def google_login():
+#     token = request.json.get("credential", "")
+#     try:
+#         info = id_token.verify_oauth2_token(token, google_requests.Request(), GOOGLE_CLIENT_ID)
+#         email = info["email"]
+#         name = info.get("name", email.split("@")[0])
+#         users = load_users()
+#         if email not in users:
+#             users[email] = {"password": "", "created_at": datetime.datetime.now().isoformat(), "google": True}
+#             save_users(users)
+#         log_login_attempt(email, True, request.remote_addr)
+#         session["user"] = name
+#         return jsonify({"ok": True})
+#     except Exception as e:
+#         return jsonify({"ok": False, "error": str(e)}), 401
 
 @app.route("/dashboard")
 def dashboard():
@@ -185,4 +185,4 @@ def api_analytics():
     return jsonify(get_analytics())
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=False, port=5000)
