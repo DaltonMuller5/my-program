@@ -1,6 +1,8 @@
 import json
 import os
 import random
+import hashlib
+import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
@@ -155,55 +157,3 @@ def api_analytics():
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
-
-
-
-
-
-
-
-
-
-
-from flask import Flask, render_template, request, redirect, url_for, flash
-
-app = Flask(__name__)
-app.secret_key = "supersecretkey"
-
-# Simulating user data storage
-users = {}
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-
-        if username in users:
-            flash("Username already exists. Try a different one.", "error")
-        else:
-            users[username] = password
-            flash("Registration successful! You can now log in.", "success")
-            return redirect(url_for('login'))
-    
-    return render_template('register.html')
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-
-        if username in users and users[username] == password:
-            flash("Login successful! Welcome!", "success")
-        else:
-            flash("Invalid username or password. Try again.", "error")
-
-    return render_template('login.html')
-
-if __name__ == '__main__':
-    app.run(debug=True)
